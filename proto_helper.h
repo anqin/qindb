@@ -1,5 +1,5 @@
 // Copyright (C) 2016, Baidu Inc.
-// Author: An Qin (qinan@baidu.com)
+// Author: An Qin (anqin.qin@gmail.com)
 //
 // Description:
 //
