@@ -1,1 +1,1 @@
-This is the repo for Quick-Index Databse (Q-IndexDB)
+This is the repo for Quick-Index Database (Q-IndexDB)
