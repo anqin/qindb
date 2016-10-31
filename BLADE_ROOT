@@ -1,0 +1,19 @@
+cc_test_config(
+    dynamic_link=False,
+    heap_check='strict',
+    gperftools_libs='thirdparty/perftools:tcmalloc',
+    gtest_libs='thirdparty/gtest:gtest',
+    gtest_main_libs='thirdparty/gtest:gtest_main'
+)
+
+proto_library_config(
+# protoc='thirdparty/protobuf/bin/protoc',
+    protobuf_libs='thirdparty/protobuf:protobuf',
+    protobuf_path='thirdparty',
+    protobuf_include_path = 'thirdparty',
+)
+
+cc_config(
+    extra_incs='thirdparty'
+)
+
