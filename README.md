@@ -8,6 +8,7 @@ This is the repo for Quick-Index Databse (Q-IndexDB)
 2. Download the dependant libraries
 
     $ cd qindb/
+    
     $ ./prepare_deps.sh
 
 3. Build the qindb
@@ -17,5 +18,7 @@ This is the repo for Quick-Index Databse (Q-IndexDB)
 4. Run the loop test
 
     $ cd qindb/qindb/benkmark
+    
     $ a
+    
     $ ./loop_main qindb 10 0 3
