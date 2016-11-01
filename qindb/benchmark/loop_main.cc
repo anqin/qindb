@@ -1,5 +1,5 @@
-// Copyright (C) 2016, for QinDB's authors.
-// Author: An Qin (anqin.qin@gmail.com)
+// Copyright (C) 2016, Baidu Inc.
+// Author: An Qin (qinan@baidu.com)
 //
 // Description:
 //
@@ -12,6 +12,8 @@
 
 #include "thirdparty/gflags/gflags.h"
 #include "thirdparty/glog/logging.h"
+#include "thirdparty/leveldb/db.h"
+#include "thirdparty/leveldb/options.h"
 #include "toft/base/string/number.h"
 #include "toft/container/counter.h"
 #include "toft/crypto/random/true_random.h"
@@ -23,6 +25,7 @@ bool g_quit = false;
 DEFINE_uint64(qindb_stat_key_size, 20, "");
 DEFINE_uint64(qindb_stat_value_size, 20 * 1024, "");
 DEFINE_bool(qindb_stat_full_print_enabled, false, "");
+DEFINE_string(qindb_db_path, "my_db", "");
 
 DECLARE_bool(qindb_is_activated);
 
@@ -162,6 +165,7 @@ static void DataRemoveRoutine(Database* database) {
 
 void RunWorkers(Database* database, uint32_t fill_thread_num,
                 uint32_t fetch_thread_num, uint32_t remove_thread_num) {
+    std::cout << "===== Benchmark for QinDB =====" << std::endl;
     std::vector<toft::Thread*> threads;
     for (uint32_t i = 0; i < fill_thread_num; ++i) {
         toft::Thread* thread = new toft::Thread(std::bind(DataFillRoutine, database));
@@ -187,6 +191,85 @@ void RunWorkers(Database* database, uint32_t fill_thread_num,
 
 } // namespace qindb
 
+namespace leveldb {
+
+static void DataFillRoutine(DB* database) {
+    while (!g_quit) {
+        std::string random_key = GenRandomString(FLAGS_qindb_stat_key_size);
+        std::string random_value = GenRandomString(FLAGS_qindb_stat_value_size);
+        CHECK(random_key.size() == FLAGS_qindb_stat_key_size);
+        CHECK(random_value.size() == FLAGS_qindb_stat_value_size);
+        Status status = database->Put(WriteOptions(), random_key, random_value);
+        if (!status.ok()) {
+            LOG(ERROR) << "fail to put <"
+                << random_key << "> to database: "
+                << status.ToString();
+            continue;
+        }
+        COUNTER_qindb_io_user_write.AddCount(random_key.size() + random_value.size());
+    }
+}
+
+
+static void DataFetchRoutine(DB* database) {
+    while (!g_quit) {
+        std::string random_key = GenRandomString(FLAGS_qindb_stat_key_size);
+        CHECK(random_key.size() == FLAGS_qindb_stat_key_size);
+        std::string value;
+        Status status = database->Get(ReadOptions(), random_key, &value);
+        if (!status.ok()) {
+            LOG(ERROR) << "fail to get vaue of <"
+                << random_key << "> to database";
+            continue;
+        }
+        COUNTER_qindb_io_user_read.AddCount(random_key.size() + value.size());
+
+        if (value.size() != FLAGS_qindb_stat_value_size) {
+            LOG(ERROR) << "data mismatch";
+        }
+    }
+}
+
+static void DataRemoveRoutine(DB* database) {
+    while (!g_quit) {
+        std::string random_key = GenRandomString(FLAGS_qindb_stat_key_size);
+        CHECK(random_key.size() == FLAGS_qindb_stat_key_size);
+        Status status = database->Delete(WriteOptions(), random_key);
+        if (!status.ok()) {
+            LOG(ERROR) << "fail to delete <"
+                << random_key << "> to database";
+            continue;
+        }
+    }
+}
+
+void RunWorkers(DB* database, uint32_t fill_thread_num,
+                uint32_t fetch_thread_num, uint32_t remove_thread_num) {
+    std::cout << "===== Benchmark for LevelDB =====" << std::endl;
+    std::vector<toft::Thread*> threads;
+    for (uint32_t i = 0; i < fill_thread_num; ++i) {
+        toft::Thread* thread = new toft::Thread(std::bind(DataFillRoutine, database));
+        threads.push_back(thread);
+    }
+
+    for (uint32_t i = 0; i < fetch_thread_num; ++i) {
+        toft::Thread* thread = new toft::Thread(std::bind(DataFetchRoutine, database));
+        threads.push_back(thread);
+    }
+
+    for (uint32_t i = 0; i < remove_thread_num; ++i) {
+        toft::Thread* thread = new toft::Thread(std::bind(DataRemoveRoutine, database));
+        threads.push_back(thread);
+    }
+
+    LOG(INFO) << "total started threads: " << threads.size();
+
+    for (uint32_t i = 0; i < threads.size(); ++i) {
+        threads[i]->Join();
+    }
+}
+
+} // namespace qindb
 
 void Usage(const std::string& prg_name) {
     std::cout << "$ " << prg_name << "    [OPERATION]    [OPTIONS]" << std::endl;
@@ -211,18 +294,27 @@ int main(int argc, char* argv[]) {
     signal(SIGTERM, SignalIntHandler);
 
     int ret = 0;
-    qindb::Status status;
-    qindb::Options options;
-    options.base_dir = "my_db";
-    options.file_size = (32 << 20);
-    qindb::Database database(options);
     std::string cmd = argv[1];
     uint32_t fill_num, fetch_num, remove_num;
     toft::StringToNumber(argv[2], &fill_num);
     toft::StringToNumber(argv[3], &fetch_num);
     toft::StringToNumber(argv[4], &remove_num);
     if (cmd == "qindb") {
+        qindb::Options options;
+        options.base_dir = FLAGS_qindb_db_path;
+        options.file_size = (32 << 20);
+        qindb::Database database(options);
         qindb::RunWorkers(&database, fill_num, fetch_num, remove_num);
+    } else if (cmd == "leveldb") {
+        leveldb::Options options;
+        options.create_if_missing = true;
+        leveldb::DB* database = NULL;
+        leveldb::Status status =
+            leveldb::DB::Open(options, FLAGS_qindb_db_path, &database);
+        CHECK(status.ok()) << ", fail to open db: " << FLAGS_qindb_db_path
+            << ", status: " << status.ToString();
+        leveldb::RunWorkers(database, fill_num, fetch_num, remove_num);
+        delete database;
     } else {
         Usage(argv[0]);
     }
