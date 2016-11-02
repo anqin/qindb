@@ -1,5 +1,5 @@
-// Copyright (C) 2016, for QinDB's authors.
-// Author: An Qin (anqin.qin@gmail.com)
+// Copyright (C) 2016, Baidu Inc.
+// Author: An Qin (qinan@baidu.com)
 //
 // Description:
 //
@@ -22,11 +22,11 @@
 
 namespace qindb {
 
-class Database;
+class DatabaseImpl;
 
 class LogFile {
 public:
-    LogFile(const Options& options, Database* database);
+    LogFile(const Options& options, DatabaseImpl* database);
     ~LogFile();
 
     bool Append(const LogRecord& log_record, RecordLocation* location,
@@ -48,7 +48,7 @@ private:
     toft::scoped_ptr<toft::RecordWriter> m_writer;
 
     Options m_options;
-    Database* m_database;
+    DatabaseImpl* m_database;
     uint64_t m_cur_file_no;
     int64_t m_cur_file_size;
 };

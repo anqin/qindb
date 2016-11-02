@@ -1,5 +1,5 @@
-// Copyright (C) 2016, for QinDB's authors.
-// Author: An Qin (anqin.qin@gmail.com)
+// Copyright (C) 2016, Baidu Inc.
+// Author: An Qin (qinan@baidu.com)
 //
 // Description:
 //
@@ -7,6 +7,7 @@
 #include "qindb/recover.h"
 
 #include "thirdparty/glog/logging.h"
+#include "toft/storage/path/path_ext.h"
 
 namespace qindb {
 

@@ -1,5 +1,5 @@
-// Copyright (C) 2016, for QinDB's authors.
-// Author: An Qin (anqin.qin@gmail.com)
+// Copyright (C) 2016, Baidu Inc.
+// Author: An Qin (qinan@baidu.com)
 //
 // Description:
 //
@@ -7,9 +7,10 @@
 #include "qindb/log_file.h"
 
 #include "toft/container/counter.h"
+#include "toft/storage/path/path_ext.h"
 
 #include "qindb/filename.h"
-#include "qindb/database.h"
+#include "qindb/database_impl.h"
 
 DECLARE_COUNTER(Rate, qindb_io_db_write);
 DECLARE_COUNTER(Rate, qindb_io_db_read);
@@ -17,13 +18,13 @@ DECLARE_COUNTER(Rate, qindb_io_db_read);
 namespace qindb {
 
 
-LogFile::LogFile(const Options& options, Database* database)
+LogFile::LogFile(const Options& options, DatabaseImpl* database)
     : m_cur_file(NULL), m_reader(NULL), m_writer(NULL),
       m_options(options), m_database(database),
       m_cur_file_no(0), m_cur_file_size(0) {}
 
 LogFile::~LogFile() {
-//     m_cur_file->Close();
+    m_cur_file->Close();
 }
 
 bool LogFile::InitFile(uint64_t seq_no, int64_t file_size) {

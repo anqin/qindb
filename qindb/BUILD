@@ -6,15 +6,16 @@ proto_library(
 cc_library(
     name = 'qindb',
     srcs = [
-        'options.cc',
-        'status.cc',
+        'arranger.cc',
+        'counters.cc',
+        'database.cc',
+        'database_impl.cc',
         'filename.cc',
         'log_file.cc',
-        'database.cc',
+        'options.cc',
         'qin_cleaner.cc',
-        'arranger.cc',
         'recover.cc',
-        'counters.cc'
+        'status.cc',
     ],
     deps = [
         ':schema_proto',

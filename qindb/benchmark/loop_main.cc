@@ -1,10 +1,12 @@
-// Copyright (C) 2016, for QinDB's authors.
-// Author: An Qin (anqin.qin@gmail.com)
+// Copyright (C) 2016, Baidu Inc.
+// Author: An Qin (qinan@baidu.com)
 //
 // Description:
 //
 
 #include "qindb/database.h"
+
+#include <signal.h>
 
 #include <iostream>
 #include <string>
@@ -16,7 +18,6 @@
 #include "thirdparty/leveldb/options.h"
 #include "toft/base/string/number.h"
 #include "toft/container/counter.h"
-#include "toft/crypto/random/true_random.h"
 #include "toft/system/threading/this_thread.h"
 #include "toft/system/threading/thread.h"
 
@@ -165,6 +166,7 @@ static void DataRemoveRoutine(Database* database) {
 
 void RunWorkers(Database* database, uint32_t fill_thread_num,
                 uint32_t fetch_thread_num, uint32_t remove_thread_num) {
+    std::cout << "===== Benchmark for QinDB =====" << std::endl;
     std::vector<toft::Thread*> threads;
     for (uint32_t i = 0; i < fill_thread_num; ++i) {
         toft::Thread* thread = new toft::Thread(std::bind(DataFillRoutine, database));
@@ -244,6 +246,7 @@ static void DataRemoveRoutine(DB* database) {
 
 void RunWorkers(DB* database, uint32_t fill_thread_num,
                 uint32_t fetch_thread_num, uint32_t remove_thread_num) {
+    std::cout << "===== Benchmark for LevelDB =====" << std::endl;
     std::vector<toft::Thread*> threads;
     for (uint32_t i = 0; i < fill_thread_num; ++i) {
         toft::Thread* thread = new toft::Thread(std::bind(DataFillRoutine, database));
