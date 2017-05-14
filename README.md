@@ -1,11 +1,11 @@
-# Quick-Index Databse (Q-IndexDB)
+# Quick-Index Database (Q-IndexDB)
 
- Quick-Index Databse (Q-IndexDB) is the next-generation storage engine used in low-latency key-value storage, to shoot the read/write amplification in Log-Structured Merge-Tree (LSM Tree) engine (e.g. Leveldb, Rocksdb). Now, it has been back in close-source development and be launched in online databases in our real-life product system. Thanks for your attention.
+ Quick-Index Database (Q-IndexDB) is the next-generation storage engine used in low-latency key-value storage, to shoot the read/write amplification in Log-Structured Merge-Tree (LSM Tree) engine (e.g. Leveldb, Rocksdb). Now, it has been back in close-source development and be launched in online databases in our real-life product system. Thanks for your attention.
 
 
 ## Build the codes
 
-This repo version is base one.
+【NOTICE】This repo version is prototype one, not gurantee the performance.
 
 1. Install the BLADE 
 
